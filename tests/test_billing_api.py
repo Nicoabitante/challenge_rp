@@ -5,7 +5,7 @@ from invoices.models import Invoice, InvoiceAttempt
 
 @pytest.mark.django_db
 def test_list_providers(client):
-    response = client.get("/api/providers")
+    response = client.get("/providers")
 
     assert response.status_code == 200
     assert response.json() == [
@@ -29,7 +29,7 @@ def test_list_providers(client):
 @pytest.mark.django_db
 def test_issue_invoice_successfully(client):
     response = client.post(
-        "/api/invoices",
+        "/invoices",
         {
             "entity_id": "customer-1",
             "amount": "1500.00",
@@ -52,7 +52,7 @@ def test_issue_invoice_successfully(client):
 @pytest.mark.django_db
 def test_get_invoice_returns_audit_trail(client):
     created = client.post(
-        "/api/invoices",
+        "/invoices",
         {
             "entity_id": "customer-2",
             "amount": "10.50",
@@ -63,7 +63,7 @@ def test_get_invoice_returns_audit_trail(client):
         headers={"Idempotency-Key": "invoice-key-2"},
     )
 
-    response = client.get(f"/api/invoices/{created.json()['invoice_id']}")
+    response = client.get(f"/invoices/{created.json()['invoice_id']}")
 
     assert response.status_code == 200
     body = response.json()
@@ -84,13 +84,13 @@ def test_idempotency_key_reuses_existing_invoice(client):
     }
 
     first_response = client.post(
-        "/api/invoices",
+        "/invoices",
         payload,
         content_type="application/json",
         headers={"Idempotency-Key": "invoice-key-3"},
     )
     second_response = client.post(
-        "/api/invoices",
+        "/invoices",
         payload,
         content_type="application/json",
         headers={"Idempotency-Key": "invoice-key-3"},
@@ -107,7 +107,7 @@ def test_idempotency_key_reuses_existing_invoice(client):
 def test_idempotency_key_with_different_payload_returns_conflict(client):
     headers = {"Idempotency-Key": "invoice-key-4"}
     response = client.post(
-        "/api/invoices",
+        "/invoices",
         {
             "entity_id": "customer-4",
             "amount": "10.00",
@@ -118,7 +118,7 @@ def test_idempotency_key_with_different_payload_returns_conflict(client):
         headers=headers,
     )
     conflict = client.post(
-        "/api/invoices",
+        "/invoices",
         {
             "entity_id": "customer-4",
             "amount": "11.00",

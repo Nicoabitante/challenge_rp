@@ -18,8 +18,11 @@ poetry run python manage.py runserver
 
 The API is available at:
 
-- `GET /api/health`
-- `/api/docs`
+- `GET /health`
+- `GET /providers`
+- `POST /invoices`
+- `GET /invoices/{invoice_id}`
+- `/docs`
 
 ## Tests
 
