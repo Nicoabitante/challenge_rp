@@ -1,4 +1,6 @@
 from providers.base import BillingProvider
+from providers.exceptions import ProviderPermanentError, ProviderTransientError
+from providers.http_client import post_json
 from providers.types import ProviderInvoiceRequest, ProviderInvoiceResult
 
 
@@ -25,11 +27,14 @@ class ProviderBR(BillingProvider):
         }
 
     def issue(self, payload: dict) -> ProviderInvoiceResult:
-        reference = f"BR-{payload['correlationId'][:12]}"
+        response = post_json(self.endpoint_url, payload, timeout_seconds=self.timeout_seconds)
+        if response.status_code >= 500:
+            raise ProviderTransientError(f"{self.name} returned {response.status_code}.")
+        if response.status_code >= 400:
+            raise ProviderPermanentError(f"{self.name} rejected invoice: {response.body}")
+
+        reference = response.body["notaFiscalId"]
         return ProviderInvoiceResult(
             external_reference=reference,
-            raw_response={
-                "notaFiscalId": reference,
-                "status": "authorized",
-            },
+            raw_response=response.body,
         )

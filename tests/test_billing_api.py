@@ -1,6 +1,31 @@
 import pytest
 
 from invoices.models import Invoice, InvoiceAttempt
+from providers.http_client import JsonResponse
+
+
+@pytest.fixture(autouse=True)
+def provider_http_mocks(monkeypatch):
+    def post_ar(url, payload, *, timeout_seconds):
+        return JsonResponse(
+            status_code=201,
+            body={
+                "cae": f"AR-{payload['request_id'][:12]}",
+                "result": "approved",
+            },
+        )
+
+    def post_br(url, payload, *, timeout_seconds):
+        return JsonResponse(
+            status_code=201,
+            body={
+                "notaFiscalId": f"BR-{payload['correlationId'][:12]}",
+                "status": "authorized",
+            },
+        )
+
+    monkeypatch.setattr("providers.adapters.ar.post_json", post_ar)
+    monkeypatch.setattr("providers.adapters.br.post_json", post_br)
 
 
 @pytest.mark.django_db

@@ -1,10 +1,63 @@
 services:
   web:
     build: .
-    command: python manage.py runserver 0.0.0.0:8000
+    command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     ports:
-      - "8000:8000"
-    env_file:
-      - .env
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      DJANGO_SECRET_KEY: django-local-dev-key-change-me-in-production
+      DJANGO_DEBUG: "1"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,0.0.0.0
+      DATABASE_URL: postgres://challenge_rp:challenge_rp@db:5432/challenge_rp
+      PROVIDER_AR_URL: http://provider-ar-mock:8080/invoices
+      PROVIDER_BR_URL: http://provider-br-mock:8080/invoices
+    depends_on:
+      db:
+        condition: service_healthy
+      provider-ar-mock:
+        condition: service_healthy
+      provider-br-mock:
+        condition: service_healthy
     volumes:
       - .:/app
+
+  provider-ar-mock:
+    build: ./provider_mocks
+    environment:
+      PROVIDER_COUNTRY: AR
+      PROVIDER_CODE: provider_ar
+      MOCK_MODE: success
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  provider-br-mock:
+    build: ./provider_mocks
+    environment:
+      PROVIDER_COUNTRY: BR
+      PROVIDER_CODE: provider_br
+      MOCK_MODE: success
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=2)\""]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: challenge_rp
+      POSTGRES_USER: challenge_rp
+      POSTGRES_PASSWORD: challenge_rp
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U challenge_rp -d challenge_rp"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 
+from config.database import database_config_from_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-local-dev-key")
@@ -26,6 +28,11 @@ BILLING_PROVIDERS = [
     "providers.adapters.ar.ProviderAR",
     "providers.adapters.br.ProviderBR",
 ]
+
+BILLING_PROVIDER_ENDPOINTS = {
+    "provider_ar": os.getenv("PROVIDER_AR_URL", "http://provider-ar-mock:8080/invoices"),
+    "provider_br": os.getenv("PROVIDER_BR_URL", "http://provider-br-mock:8080/invoices"),
+}
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -57,10 +64,7 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.getenv("DJANGO_DATABASE_NAME", BASE_DIR / "db.sqlite3"),
-    }
+    "default": database_config_from_url(os.getenv("DATABASE_URL"), base_dir=BASE_DIR)
 }
 
 LANGUAGE_CODE = "en-us"
