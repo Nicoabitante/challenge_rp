@@ -2,6 +2,8 @@
 
 Django, Django Ninja, pytest, Poetry y Docker.
 
+Architecture notes and technical decisions are documented in [docs/architecture.md](docs/architecture.md).
+
 ## Requirements
 
 - Python 3.12+
