@@ -166,6 +166,7 @@ Successful response:
 - Django + Django Ninja: Django gives persistence, migrations, and admin-ready foundations; Ninja gives typed request/response schemas and automatic OpenAPI documentation.
 - PostgreSQL in Docker: closer to production behavior than SQLite, especially for unique constraints and idempotency.
 - SQLite fallback: keeps local development and tests simple when `DATABASE_URL` is not configured.
+- Synchronous issuance: the challenge does not explicitly require a queue, worker, or background processing. The service issues the invoice during `POST /invoices`, which keeps the flow simple, deterministic, and easier to test. The model still includes `pending` because an invoice is created before the provider finishes; in this synchronous version that state is usually internal and short-lived. In a production version with slow providers or stricter SLAs, provider calls could move to a queue such as Celery + Redis while preserving the same invoice model, audit trail, and provider adapters.
 - Header-based idempotency: avoids blocking legitimate repeated invoices with the same entity and amount.
 - Provider registry: adding providers is configuration plus an adapter, not changes to the invoice service.
 - HTTP provider mocks: better than in-process mocks for demonstrating payload adaptation, timeout handling, retries, and auditability.
