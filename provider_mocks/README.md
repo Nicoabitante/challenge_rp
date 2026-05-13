@@ -13,3 +13,11 @@ Endpoints:
 
 - `GET /health`
 - `POST /invoices`
+
+Examples:
+
+```bash
+PROVIDER_AR_MOCK_MODE=permanent docker compose up --build
+PROVIDER_AR_MOCK_MODE=transient docker compose up --build
+PROVIDER_AR_MOCK_MODE=timeout docker compose up --build
+```

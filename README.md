@@ -39,11 +39,6 @@ docker compose up --build
 ```
 
 Docker Compose starts PostgreSQL, both external provider mocks, runs migrations, and then starts the Django app.
-If port `8000` is already in use, run it with another host port:
-
-```bash
-APP_PORT=8001 docker compose up --build
-```
 
 Provider mocks live in `provider_mocks/`. Compose starts one AR mock and one BR mock from the same image:
 
